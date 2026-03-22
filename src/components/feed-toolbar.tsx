@@ -72,21 +72,37 @@ export function FeedToolbar() {
 
       <div className="flex items-center gap-2">
         <span className="text-xs uppercase tracking-[0.2em] text-stone-500">Sort</span>
-        <select
-          aria-label="Sort articles"
-          value={sort}
-          onChange={(e) => {
-            const next = e.target.value as Sort;
-            startTransition(() => {
-              router.push(buildUrl({ sort: next }));
-            });
-          }}
-          className="rounded-full border border-stone-200 bg-white/90 px-3 py-2 text-sm text-stone-800 shadow-sm outline-none focus:border-amber-400/80 focus:ring-2 focus:ring-amber-200/60"
-        >
-          <option value="newest">Newest</option>
-          <option value="relevant">Most relevant</option>
-          <option value="rated">Highest rated</option>
-        </select>
+        <div className="relative">
+          <select
+            aria-label="Sort articles"
+            value={sort}
+            onChange={(e) => {
+              const next = e.target.value as Sort;
+              startTransition(() => {
+                router.push(buildUrl({ sort: next }));
+              });
+            }}
+            className="appearance-none rounded-full border border-stone-200 bg-white/90 py-2 pl-4 pr-11 text-sm text-stone-800 shadow-sm outline-none focus:border-amber-400/80 focus:ring-2 focus:ring-amber-200/60"
+          >
+            <option value="newest">Newest</option>
+            <option value="relevant">Most relevant</option>
+            <option value="rated">Highest rated</option>
+          </select>
+          <span
+            className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-700"
+            aria-hidden
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M4 6l4 4 4-4"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+        </div>
       </div>
     </div>
   );

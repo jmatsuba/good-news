@@ -28,7 +28,7 @@ export default async function ArticlePage({ params }: Props) {
   if (!article) notFound();
 
   return (
-    <article className="mx-auto min-h-screen max-w-3xl bg-[#faf8f5] px-4 py-12 sm:px-6">
+    <article className="group mx-auto min-h-screen max-w-3xl bg-[#faf8f5] px-4 py-12 sm:px-6">
       <Link
         href="/"
         className="mb-8 inline-flex text-sm font-medium text-amber-900/80 underline-offset-4 hover:underline"
@@ -57,7 +57,7 @@ export default async function ArticlePage({ params }: Props) {
         <img
           src={article.imageUrl}
           alt=""
-          className="mt-8 w-full rounded-2xl object-cover shadow-sm"
+          className="mt-8 w-full rounded-2xl object-cover shadow-sm grayscale transition duration-500 ease-out group-hover:grayscale-0"
         />
       )}
 

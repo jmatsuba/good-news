@@ -7,13 +7,15 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "prisma migrate deploy && prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
+    "db:import-samples": "tsx scripts/import-rss-samples.ts",
+    "db:backfill-images": "tsx scripts/backfill-article-images.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

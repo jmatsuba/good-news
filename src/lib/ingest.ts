@@ -54,7 +54,9 @@ export async function runIngestion(): Promise<{
 
       for (const item of items) {
         fetchedCount++;
-        const norm = normalizeItem(item);
+        const norm = await normalizeItem(item, {
+          fetchOgFallback: process.env.ENRICH_OG_IMAGES === "true",
+        });
         if (!norm) continue;
 
         if (!passesRuleFilter(norm.title, norm.summary)) {

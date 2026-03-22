@@ -63,6 +63,7 @@ export default async function HomePage({
   });
 
   const tagItems = tags.map((t) => ({ slug: t.slug, label: t.label }));
+  const activeTagLabel = tag ? tagItems.find((t) => t.slug === tag)?.label : undefined;
 
   const nextParams = new URLSearchParams();
   if (q) nextParams.set("q", q);
@@ -111,18 +112,48 @@ export default async function HomePage({
         )}
 
         <section aria-labelledby="feed-heading">
-          <h2 id="feed-heading" className="mb-6 font-serif text-2xl text-stone-900">
-            {q ? "Search results" : "Latest"}
-          </h2>
+          <div className="mb-6">
+            <h2 id="feed-heading" className="font-serif text-2xl text-stone-900">
+              {q ? "Search results" : "Latest"}
+            </h2>
+            {q ? (
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-stone-600">
+                Matching <span className="font-medium text-stone-800">&ldquo;{q}&rdquo;</span>
+                {tag ? (
+                  <>
+                    {" "}
+                    in <span className="font-medium text-stone-800">{activeTagLabel ?? tag}</span>
+                  </>
+                ) : null}
+                .
+              </p>
+            ) : (
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-stone-600">
+                {tag ? (
+                  <>
+                    Stories tagged{" "}
+                    <span className="font-medium text-stone-800">{activeTagLabel ?? tag}</span>—newest first.
+                    Choose <span className="font-medium text-stone-800">All</span> above to see every topic
+                    again.
+                  </>
+                ) : (
+                  <>
+                    Newest good-news picks from every category and source—browse in full below. Use the tags
+                    at the top when you want to focus on something like Tech, Health, or Science.
+                  </>
+                )}
+              </p>
+            )}
+          </div>
           {feed.articles.length === 0 ? (
             <p className="rounded-2xl border border-dashed border-stone-300/80 bg-white/50 px-6 py-12 text-center text-sm text-stone-600">
               No stories match yet. Try another search or category.
             </p>
           ) : (
-            <ul className="flex flex-col gap-5">
+            <ul className="flex flex-col gap-3 sm:gap-3.5">
               {feed.articles.map((a) => (
                 <li key={a.id}>
-                  <ArticleCard article={toCard(a)} />
+                  <ArticleCard article={toCard(a)} compact />
                 </li>
               ))}
             </ul>
