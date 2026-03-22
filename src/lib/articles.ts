@@ -142,3 +142,7 @@ export async function getArticleById(id: string) {
 export async function listAllTags() {
   return prisma.tag.findMany({ orderBy: { label: "asc" } });
 }
+
+export async function countPublishedArticles(): Promise<number> {
+  return prisma.article.count({ where: { status: ArticleStatus.PUBLISHED } });
+}

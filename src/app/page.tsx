@@ -1,5 +1,11 @@
 import Link from "next/link";
-import { listArticles, listAllTags, listHeroArticles, type ArticleSort } from "@/lib/articles";
+import {
+  countPublishedArticles,
+  listArticles,
+  listAllTags,
+  listHeroArticles,
+  type ArticleSort,
+} from "@/lib/articles";
 import { ArticleCard, type ArticleCardData } from "@/components/article-card";
 import { CategoryChips } from "@/components/category-chips";
 import { FeedToolbar } from "@/components/feed-toolbar";
@@ -48,10 +54,17 @@ export default async function HomePage({
   const sortSafe: ArticleSort =
     sort === "relevant" || sort === "rated" || sort === "newest" ? sort : "newest";
 
-  const [hero, tags] = await Promise.all([listHeroArticles(5), listAllTags()]);
+  const [hero, tags, publishedCount] = await Promise.all([
+    listHeroArticles(5),
+    listAllTags(),
+    countPublishedArticles(),
+  ]);
 
   const showSpotlight = offset === 0 && !q && !tag;
   const heroIds = hero.map((h) => h.id);
+  /** Only dedupe hero from Latest when there are more published rows than fit in Spotlight; otherwise Latest would be empty. */
+  const excludeHeroFromFeed =
+    showSpotlight && heroIds.length > 0 && publishedCount > heroIds.length;
 
   const feed = await listArticles({
     q,
@@ -59,7 +72,7 @@ export default async function HomePage({
     sort: sortSafe,
     limit,
     offset,
-    excludeIds: showSpotlight ? heroIds : undefined,
+    excludeIds: excludeHeroFromFeed ? heroIds : undefined,
   });
 
   const tagItems = tags.map((t) => ({ slug: t.slug, label: t.label }));
