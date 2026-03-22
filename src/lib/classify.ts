@@ -2,13 +2,18 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { z } from "zod";
 import { getClassificationThresholds } from "@/lib/env";
 
+const score = z.coerce.number().min(0).max(10);
+
 const classificationSchema = z.object({
-  positivity: z.number().min(0).max(10),
-  sensationalism: z.number().min(0).max(10),
-  politicalControversy: z.number().min(0).max(10),
-  fitScore: z.number().min(0).max(10),
-  isPositiveUplifting: z.boolean(),
-  recommendedSlugs: z.array(z.string()),
+  positivity: score,
+  sensationalism: score,
+  politicalControversy: score,
+  fitScore: score,
+  isPositiveUplifting: z.coerce.boolean(),
+  recommendedSlugs: z.preprocess(
+    (v) => (v == null ? [] : Array.isArray(v) ? v : [String(v)]),
+    z.array(z.string()),
+  ),
   rejectReason: z.string().nullable().optional(),
 });
 
