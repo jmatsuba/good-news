@@ -1,0 +1,16 @@
+{
+  "feeds": [
+    {
+      "url": "https://www.goodnewsnetwork.org/feed/",
+      "sourceName": "Good News Network"
+    },
+    {
+      "url": "https://positive.news/feed/",
+      "sourceName": "Positive News"
+    },
+    {
+      "url": "https://www.sciencedaily.com/rss/all.xml",
+      "sourceName": "ScienceDaily"
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ArticleStatus {
+  CANDIDATE
+  PUBLISHED
+  REJECTED
+}
+
+model Article {
+  id        String   @id @default(cuid())
+  title     String
+  summary   String   @db.Text
+  url       String   @unique
+  sourceName String
+  publishedAt DateTime
+  imageUrl   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  positivity           Float?
+  sensationalism       Float?
+  politicalControversy Float?
+  fitScore             Float?
+
+  status       ArticleStatus @default(CANDIDATE)
+  highlighted  Boolean       @default(false)
+
+  classificationJson Json?
+
+  tags ArticleTag[]
+
+  @@index([status, publishedAt(sort: Desc)])
+  @@index([publishedAt(sort: Desc)])
+  @@index([fitScore(sort: Desc)])
+}
+
+model Tag {
+  id    String @id @default(cuid())
+  slug  String @unique
+  label String
+  articles ArticleTag[]
+}
+
+model ArticleTag {
+  articleId String
+  tagId     String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, tagId])
+  @@index([tagId])
+}
+
+model IngestionRun {
+  id        String    @id @default(cuid())
+  startedAt DateTime  @default(now())
+  finishedAt DateTime?
+  status    String
+  fetchedCount   Int @default(0)
+  newCount       Int @default(0)
+  publishedCount Int @default(0)
+  rejectedCount  Int @default(0)
+  errorMessage   String? @db.Text
+}
