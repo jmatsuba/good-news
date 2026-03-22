@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { z } from "zod";
 import { getClassificationThresholds } from "@/lib/env";
 
@@ -24,19 +24,7 @@ export function passesThresholds(c: Classification): boolean {
   return true;
 }
 
-export async function classifyArticle(input: {
-  title: string;
-  summary: string;
-  sourceName: string;
-}): Promise<{ classification: Classification; published: boolean }> {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error("OPENAI_API_KEY is not set");
-  }
-
-  const openai = new OpenAI({ apiKey });
-
-  const system = `You are a strict editor for a "good news" site. Score each article for:
+const SYSTEM = `You are a strict editor for a "good news" site. Score each article for:
 - positivity (0-10): uplifting, constructive, solutions-oriented, hope.
 - sensationalism (0-10): higher if headline/snippet is clickbait, outrage, fear-mongering, or hype.
 - politicalControversy (0-10): higher if primarily partisan conflict, culture-war framing, or likely to polarize.
@@ -46,31 +34,53 @@ isPositiveUplifting: true only if the story is clearly net-positive and appropri
 
 recommendedSlugs: choose zero or more from: tech, animals, health, politics, environment, science, culture, world — only if clearly relevant.
 
-rejectReason: short text if the story should be rejected (partisan attack, tragedy-focused, unclear, etc.), else null.`;
+rejectReason: short text if the story should be rejected (partisan attack, tragedy-focused, unclear, etc.), else null.
 
-  const user = JSON.stringify({
+Respond with JSON only (no markdown fences), single object with keys: positivity, sensationalism, politicalControversy, fitScore, isPositiveUplifting, recommendedSlugs, rejectReason.`;
+
+function parseJsonFromModelText(raw: string): unknown {
+  const trimmed = raw.trim();
+  const fence = trimmed.match(/^```(?:json)?\s*([\s\S]*?)```$/m);
+  const body = fence ? fence[1].trim() : trimmed;
+  return JSON.parse(body) as unknown;
+}
+
+export async function classifyArticle(input: {
+  title: string;
+  summary: string;
+  sourceName: string;
+}): Promise<{ classification: Classification; published: boolean }> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY is not set");
+  }
+
+  const modelName = process.env.GEMINI_MODEL ?? "gemini-2.0-flash";
+
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({
+    model: modelName,
+    systemInstruction: SYSTEM,
+    generationConfig: {
+      temperature: 0.2,
+      responseMimeType: "application/json",
+    },
+  });
+
+  const userPayload = JSON.stringify({
     title: input.title,
     summary: input.summary.slice(0, 4000),
     sourceName: input.sourceName,
   });
 
-  const res = await openai.chat.completions.create({
-    model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
-    temperature: 0.2,
-    response_format: { type: "json_object" },
-    messages: [
-      { role: "system", content: system },
-      {
-        role: "user",
-        content: `Return JSON with keys: positivity, sensationalism, politicalControversy, fitScore (numbers 0-10), isPositiveUplifting (boolean), recommendedSlugs (string array), rejectReason (string or null).\nArticle:\n${user}`,
-      },
-    ],
-  });
+  const result = await model.generateContent(
+    `Classify this article and output only the JSON object described in your instructions.\n\nArticle:\n${userPayload}`,
+  );
 
-  const raw = res.choices[0]?.message?.content;
+  const raw = result.response.text();
   if (!raw) throw new Error("Empty classification response");
 
-  const parsedJson = JSON.parse(raw) as unknown;
+  const parsedJson = parseJsonFromModelText(raw);
   const classification = classificationSchema.parse(parsedJson);
   const published = passesThresholds(classification);
   return { classification, published };

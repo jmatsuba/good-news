@@ -68,7 +68,7 @@ export async function runIngestion(): Promise<{
 
         newCount++;
 
-        if (!process.env.OPENAI_API_KEY) {
+        if (!process.env.GEMINI_API_KEY) {
           await prisma.article.create({
             data: {
               title: norm.title,
@@ -78,7 +78,7 @@ export async function runIngestion(): Promise<{
               publishedAt: norm.publishedAt,
               imageUrl: norm.imageUrl,
               status: ArticleStatus.CANDIDATE,
-              classificationJson: { error: "OPENAI_API_KEY missing" } as Prisma.InputJsonValue,
+              classificationJson: { error: "GEMINI_API_KEY missing" } as Prisma.InputJsonValue,
             },
           });
           continue;
