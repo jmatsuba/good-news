@@ -21,6 +21,9 @@
 /build
 /public/assets
 
+# Bootsnap (machine-local compile / YAML caches — never commit)
+/tmp/cache/bootsnap/
+
 # misc
 .DS_Store
 *.pem
