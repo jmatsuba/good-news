@@ -1,6 +1,42 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# ------------------------------------------------------------------------------
+# Rails (logs, tmp, local uploads — matches github/gitignore Rails.gitignore)
+# ------------------------------------------------------------------------------
+/log/*
+!/log/.keep
+
+/tmp/*
+!/tmp/.keep
+
+/tmp/pids/*
+!/tmp/pids/.keep
+
+/tmp/sockets/*
+!/tmp/sockets/.keep
+
+/storage/*
+!/storage/.keep
+/tmp/storage/*
+!/tmp/storage/.keep
+
+# Bootsnap lives under tmp/cache; covered by /tmp/*, listed explicitly for clarity
+/tmp/cache/bootsnap/
+
+# Local TLS / dev certs sometimes dropped in project root
+*.crt
+
+# Ruby / tooling caches
+/.rubocop_cache/
+/.yardoc/
+/.byebug_history
+
+# Optional local gem vendoring
+/vendor/bundle
+
+# ------------------------------------------------------------------------------
 # dependencies
+# ------------------------------------------------------------------------------
 /node_modules
 /.pnp
 .pnp.*
@@ -20,9 +56,6 @@
 # production
 /build
 /public/assets
-
-# Bootsnap (machine-local compile / YAML caches — never commit)
-/tmp/cache/bootsnap/
 
 # misc
 .DS_Store
