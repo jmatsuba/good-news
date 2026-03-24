@@ -1,0 +1,61 @@
+<%# locals: article, variant: :compact | :hero | :grid %>
+<% if variant == :compact %>
+  <article class="group relative flex gap-3 overflow-hidden rounded-xl border border-stone-200/60 bg-white/70 p-3 shadow-sm backdrop-blur-sm transition hover:border-amber-200/80 hover:shadow-md sm:gap-4 sm:p-3.5">
+    <div class="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg sm:h-28 sm:w-28">
+      <% if article.image_url.present? %>
+        <%= image_tag article.image_url, alt: "", class: "h-full w-full object-cover grayscale transition duration-500 ease-out group-hover:scale-[1.03] group-hover:grayscale-0" %>
+      <% else %>
+        <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-amber-100/80 via-stone-100 to-stone-200/80 text-stone-400">
+          <span class="text-[10px] font-medium tracking-wide">Good News</span>
+        </div>
+      <% end %>
+    </div>
+    <div class="flex min-w-0 flex-1 flex-col justify-center py-0.5">
+      <div class="mb-1.5 flex flex-wrap gap-1.5">
+        <% article.tags.take(3).each do |t| %>
+          <span class="rounded-full bg-stone-100/90 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-stone-600"><%= t.label %></span>
+        <% end %>
+      </div>
+      <h2 class="font-serif text-base leading-snug tracking-tight text-stone-900 sm:text-[1.05rem]">
+        <%= link_to article_path(article), class: "after:absolute after:inset-0 after:rounded-xl" do %>
+          <span class="line-clamp-2"><%= article.title %></span>
+        <% end %>
+      </h2>
+      <p class="mt-1.5 line-clamp-2 text-xs leading-relaxed text-stone-600 sm:text-sm"><%= article.summary %></p>
+      <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-stone-500">
+        <span class="truncate"><%= article.source_name %></span>
+        <time datetime="<%= article.published_at.iso8601 %>"><%= format_relative_time(article.published_at) %></time>
+        <%= link_to "Source", article.url, target: "_blank", rel: "noopener noreferrer", class: "relative z-10 font-medium text-amber-800 underline-offset-4 hover:underline" %>
+      </div>
+    </div>
+  </article>
+<% else %>
+  <% hero = variant == :hero %>
+  <article class="group relative overflow-hidden rounded-2xl border border-stone-200/60 bg-white/70 shadow-sm backdrop-blur-sm transition hover:border-amber-200/80 hover:shadow-md <%= "md:grid md:grid-cols-2 md:gap-0" if hero %>">
+    <div class="relative <%= hero ? "aspect-[16/10] md:aspect-auto md:min-h-[220px]" : "aspect-[16/10]" %>">
+      <% if article.image_url.present? %>
+        <%= image_tag article.image_url, alt: "", class: "h-full w-full object-cover grayscale transition duration-500 ease-out group-hover:scale-[1.02] group-hover:grayscale-0" %>
+      <% else %>
+        <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-amber-100/80 via-stone-100 to-stone-200/80 text-stone-400">
+          <span class="text-sm font-medium tracking-wide">Good News</span>
+        </div>
+      <% end %>
+    </div>
+    <div class="flex flex-col justify-center p-5 <%= "md:p-8" if hero %>">
+      <div class="mb-2 flex flex-wrap gap-2">
+        <% article.tags.each do |t| %>
+          <span class="rounded-full bg-stone-100/90 px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-wider text-stone-600"><%= t.label %></span>
+        <% end %>
+      </div>
+      <h2 class="font-serif text-stone-900 leading-snug tracking-tight <%= hero ? "text-2xl md:text-3xl" : "text-lg" %>">
+        <%= link_to article.title, article_path(article), class: "after:absolute after:inset-0 after:rounded-2xl" %>
+      </h2>
+      <p class="mt-2 line-clamp-3 text-sm leading-relaxed text-stone-600"><%= article.summary %></p>
+      <div class="mt-4 flex items-center justify-between gap-3 text-xs text-stone-500">
+        <span><%= article.source_name %></span>
+        <time datetime="<%= article.published_at.iso8601 %>"><%= format_relative_time(article.published_at) %></time>
+      </div>
+      <%= link_to "Read source", article.url, target: "_blank", rel: "noopener noreferrer", class: "relative z-10 mt-3 inline-flex w-fit text-xs font-medium text-amber-800 underline-offset-4 hover:underline" %>
+    </div>
+  </article>
+<% end %>

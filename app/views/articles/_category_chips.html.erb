@@ -1,0 +1,11 @@
+<%# locals: tags, active_slug, preserve_q, preserve_sort %>
+<div class="flex flex-wrap gap-2">
+  <%= link_to "All",
+      root_path(category_chip_params(nil, preserve_q, preserve_sort)),
+      class: category_chip_class(active_slug.blank?) %>
+  <% tags.each do |t| %>
+    <%= link_to t[:label],
+        root_path(category_chip_params(t[:slug], preserve_q, preserve_sort)),
+        class: category_chip_class(active_slug == t[:slug]) %>
+  <% end %>
+</div>

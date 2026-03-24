@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Good News
 
-## Getting Started
+Rails 8 app that ingests RSS feeds, classifies articles with Google Gemini, and serves a curated “good news” homepage (Spotlight + Latest), search, tags, and article pages.
 
-First, run the development server:
+## Stack
+
+- Ruby 3.4+, Rails 8.1, PostgreSQL, Hotwire (Turbo + Stimulus), Tailwind CSS
+- Background jobs: Solid Queue in production (`bin/jobs` + recurring tasks); async adapter in development
+- Ingest: `config/feeds.json` plus optional `RSS_FEED_URLS`
+
+## Setup
+
+1. Copy [`.env.example`](.env.example) to `.env` and set at least `DATABASE_URL` and `GEMINI_API_KEY` for full ingest.
+
+2. Start Postgres (optional local Docker):
+
+   ```bash
+   docker compose up -d
+   ```
+
+3. Install gems and prepare the database:
+
+   ```bash
+   bundle install
+   bin/rails db:prepare
+   ```
+
+4. Run the app:
+
+   ```bash
+   bin/dev
+   ```
+
+   Open [http://localhost:3000](http://localhost:3000).
+
+## Ingest
+
+- **Development:** `GET` or `POST` `/ingest` with `Authorization: Bearer <INGEST_SECRET>` or `?secret=` runs ingestion **synchronously** and returns JSON or HTML (`&ui=1`).
+- **Production:** the same endpoints **enqueue** [`IngestionJob`](app/jobs/ingestion_job.rb); you must run **`bin/jobs`** (or your platform’s worker) so jobs execute. HTML `ui=1` explains that the job was queued.
+
+Recurring ingest is configured in [`config/recurring.yml`](config/recurring.yml) for production (daily at midnight, server time).
+
+## Admin
+
+- Rejected samples (last 50): `/admin/rejected?secret=<INGEST_SECRET>` (requires `INGEST_SECRET` set).
+
+## Deployment
+
+See [DEPLOY.md](DEPLOY.md) for Fly.io, Render, Railway, and Kamal-style setups (Puma + `bin/jobs` + PostgreSQL).
+
+## Test database
+
+Tests expect `DATABASE_URL_TEST` or the default URL in `config/database.yml` (e.g. `goodnews_test` on port 5433). Create the DB with:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+RAILS_ENV=test bin/rails db:create db:migrate
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Migrating from the old Prisma app
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This schema uses **UUID** primary keys. The previous Next.js app used Prisma **cuid** strings. To reuse an existing Postgres database you must either **copy/transform** rows (map old IDs to new UUIDs and rewrite foreign keys) or start from an empty database and re-ingest.

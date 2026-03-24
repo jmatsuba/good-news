@@ -19,6 +19,7 @@
 
 # production
 /build
+/public/assets
 
 # misc
 .DS_Store
@@ -42,3 +43,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Ignore key files for decrypting credentials and more.
+/config/*.key
+
+
+/app/assets/builds/*
+!/app/assets/builds/.keep

@@ -1,0 +1,44 @@
+<div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+  <%= form_with url: root_path, method: :get, local: true, class: "relative max-w-md flex-1" do %>
+    <% if tag.present? %><%= hidden_field_tag :tag, tag %><% end %>
+    <% if sort.present? && sort != "newest" %><%= hidden_field_tag :sort, sort %><% end %>
+    <label for="search" class="sr-only">Search stories</label>
+    <input
+      id="search"
+      name="q"
+      type="search"
+      value="<%= q %>"
+      placeholder="Search…"
+      class="w-full rounded-full border border-stone-200 bg-white/80 px-5 py-2.5 pr-24 text-sm text-stone-800 shadow-sm outline-none ring-0 transition placeholder:text-stone-400 focus:border-amber-400/80 focus:ring-2 focus:ring-amber-200/60"
+    />
+    <button
+      type="submit"
+      class="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full bg-stone-900 px-3 py-1.5 text-xs font-medium text-amber-50 transition hover:bg-stone-800"
+    >
+      Search
+    </button>
+  <% end %>
+
+  <%= form_with url: root_path, method: :get, local: true, class: "flex items-center gap-2" do %>
+    <% if q.present? %><%= hidden_field_tag :q, q %><% end %>
+    <% if tag.present? %><%= hidden_field_tag :tag, tag %><% end %>
+    <span class="text-xs uppercase tracking-[0.2em] text-stone-500">Sort</span>
+    <div class="relative">
+      <select
+        name="sort"
+        aria-label="Sort articles"
+        class="appearance-none rounded-full border border-stone-200 bg-white/90 py-2 pl-4 pr-11 text-sm text-stone-800 shadow-sm outline-none focus:border-amber-400/80 focus:ring-2 focus:ring-amber-200/60"
+        onchange="this.form.submit()"
+      >
+        <option value="newest" <%= "selected" if sort == "newest" %>>Newest</option>
+        <option value="relevant" <%= "selected" if sort == "relevant" %>>Most relevant</option>
+        <option value="rated" <%= "selected" if sort == "rated" %>>Highest rated</option>
+      </select>
+      <span class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-700" aria-hidden="true">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </span>
+    </div>
+  <% end %>
+</div>
