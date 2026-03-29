@@ -86,23 +86,30 @@ Dokku runs the app on your own server via Git push or CI. Use the **Dockerfile**
 
 ### Web and job processes
 
-Dokku must run **two** process types: HTTP (Puma via the Dockerfile / Thruster) and **`bin/jobs`** for Solid Queue. Add a **`Procfile`** at the repo root (not only `Procfile.dev`), for example:
+The repo root **`Procfile`** defines three stanzas:
 
-```
-web: ./bin/thrust ./bin/rails server
-worker: bin/jobs
-```
+- **`release`** — runs `./bin/rails db:prepare` once per deploy (after the image is built, before new containers are scheduled). This mirrors Heroku-style release phase behavior.
+- **`web`** — `./bin/thrust ./bin/rails server` (same as the image default `CMD`).
+- **`worker`** — `./bin/jobs` for Solid Queue.
 
-Then scale both:
+Scale web and worker (leave `release` at its default; do not scale it):
 
 ```bash
 dokku ps:scale good-news web=1 worker=1
 ```
 
-The Docker entrypoint runs `db:prepare` when the **web** container starts with `rails server`; run a one-off migrate if you prefer release-phase deploys:
+The Docker entrypoint also runs `db:prepare` when the **web** process starts, so the DB stays in sync even without the `release` line. Optionally run a one-off:
 
 ```bash
 dokku run good-news bin/rails db:prepare
+```
+
+**Zero-downtime checks:** [`app.json`](app.json) declares a startup healthcheck for **`/up`** on **port 80** (Thruster’s HTTP port). If your Dokku scheduler does not use `app.json` healthchecks, rely on the default checks or configure them on the server.
+
+To avoid HTTP-style checks on the worker (optional):
+
+```bash
+dokku checks:skip good-news worker
 ```
 
 ### TLS and deploy
