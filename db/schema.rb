@@ -15,65 +15,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_24_160000) do
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
 
-  # Custom types defined in this database.
-  # Note that some types may not work with other database engines. Be careful if changing database.
-  create_enum "ArticleStatus", ["CANDIDATE", "PUBLISHED", "REJECTED"]
-
-  create_table "Article", id: :text, force: :cascade do |t|
-    t.jsonb "classificationJson"
-    t.datetime "createdAt", precision: 3, default: -> { "CURRENT_TIMESTAMP" }, null: false
-    t.float "fitScore"
-    t.boolean "highlighted", default: false, null: false
-    t.text "imageUrl"
-    t.float "politicalControversy"
-    t.float "positivity"
-    t.datetime "publishedAt", precision: 3, null: false
-    t.float "sensationalism"
-    t.text "sourceName", null: false
-    t.enum "status", default: "CANDIDATE", null: false, enum_type: "\"ArticleStatus\""
-    t.text "summary", null: false
-    t.text "title", null: false
-    t.datetime "updatedAt", precision: 3, null: false
-    t.text "url", null: false
-    t.index ["fitScore"], name: "Article_fitScore_idx", order: :desc
-    t.index ["publishedAt"], name: "Article_publishedAt_idx", order: :desc
-    t.index ["status", "publishedAt"], name: "Article_status_publishedAt_idx", order: { publishedAt: :desc }
-    t.index ["url"], name: "Article_url_key", unique: true
-  end
-
-  create_table "ArticleTag", primary_key: ["articleId", "tagId"], force: :cascade do |t|
-    t.text "articleId", null: false
-    t.text "tagId", null: false
-    t.index ["tagId"], name: "ArticleTag_tagId_idx"
-  end
-
-  create_table "IngestionRun", id: :text, force: :cascade do |t|
-    t.text "errorMessage"
-    t.integer "fetchedCount", default: 0, null: false
-    t.datetime "finishedAt", precision: 3
-    t.integer "newCount", default: 0, null: false
-    t.integer "publishedCount", default: 0, null: false
-    t.integer "rejectedCount", default: 0, null: false
-    t.datetime "startedAt", precision: 3, default: -> { "CURRENT_TIMESTAMP" }, null: false
-    t.text "status", null: false
-  end
-
-  create_table "Tag", id: :text, force: :cascade do |t|
-    t.text "label", null: false
-    t.text "slug", null: false
-    t.index ["slug"], name: "Tag_slug_key", unique: true
-  end
-
-  create_table "_prisma_migrations", id: { type: :string, limit: 36 }, force: :cascade do |t|
-    t.integer "applied_steps_count", default: 0, null: false
-    t.string "checksum", limit: 64, null: false
-    t.timestamptz "finished_at"
-    t.text "logs"
-    t.string "migration_name", limit: 255, null: false
-    t.timestamptz "rolled_back_at"
-    t.timestamptz "started_at", default: -> { "now()" }, null: false
-  end
-
   create_table "article_tags", id: false, force: :cascade do |t|
     t.uuid "article_id", null: false
     t.uuid "tag_id", null: false
@@ -123,8 +64,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_24_160000) do
     t.index ["slug"], name: "index_tags_on_slug", unique: true
   end
 
-  add_foreign_key "ArticleTag", "Article", column: "articleId", name: "ArticleTag_articleId_fkey", on_update: :cascade, on_delete: :cascade
-  add_foreign_key "ArticleTag", "Tag", column: "tagId", name: "ArticleTag_tagId_fkey", on_update: :cascade, on_delete: :cascade
   add_foreign_key "article_tags", "articles"
   add_foreign_key "article_tags", "tags"
 end

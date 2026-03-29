@@ -88,7 +88,8 @@ module Ingestion
             summary: norm.summary,
             source_name: feed["sourceName"]
           )
-        rescue StandardError
+        rescue StandardError => e
+          Rails.logger.warn("[ingest] classification failed for #{norm.url}: #{e.class}: #{e.message}")
           Article.create!(
             title: norm.title,
             summary: norm.summary,
@@ -97,7 +98,11 @@ module Ingestion
             published_at: norm.published_at,
             image_url: norm.image_url,
             status: :rejected,
-            classification_json: { "error" => "classification_failed" }
+            classification_json: {
+              "error" => "classification_failed",
+              "message" => e.message.to_s.truncate(1000),
+              "errorClass" => e.class.name
+            }
           )
           tallies[:rejected] += 1
           return

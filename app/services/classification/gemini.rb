@@ -26,7 +26,7 @@ module Classification
 
     def classify!(title:, summary:, source_name:)
       api_key = ENV.fetch("GEMINI_API_KEY")
-      model = ENV["GEMINI_MODEL"].presence || "gemini-2.0-flash"
+      model = ENV["GEMINI_MODEL"].presence || "gemini-2.5-flash"
       url = "https://generativelanguage.googleapis.com/v1beta/models/#{model}:generateContent"
       payload = {
         systemInstruction: { parts: [ { text: SYSTEM } ] },
@@ -55,11 +55,22 @@ module Classification
         req.body = payload.to_json
       end
 
-      raise "Gemini HTTP #{res.status}" unless res.success?
+      raise_gemini_http_error!(res) unless res.success?
 
-      body = JSON.parse(res.body)
+      body =
+        begin
+          JSON.parse(res.body)
+        rescue JSON::ParserError
+          raise "Gemini response was not JSON: #{res.body.to_s.truncate(200)}"
+        end
+
       text = body.dig("candidates", 0, "content", "parts", 0, "text")
-      raise "Empty classification response" if text.blank?
+      if text.blank?
+        finish = body.dig("candidates", 0, "finishReason")
+        block = body.dig("promptFeedback", "blockReason")
+        detail = [ finish, block ].compact.join(", ").presence || body.except("usageMetadata").to_json.truncate(400)
+        raise "Empty classification response (#{detail})"
+      end
 
       parsed = parse_json_from_model_text(text)
       c = ClassificationPayload.parse!(parsed)
@@ -68,6 +79,23 @@ module Classification
     end
 
     private
+
+    def raise_gemini_http_error!(res)
+      msg = +"Gemini HTTP #{res.status}"
+      parsed =
+        begin
+          JSON.parse(res.body)
+        rescue JSON::ParserError
+          nil
+        end
+      if parsed.is_a?(Hash) && parsed["error"].is_a?(Hash)
+        detail = parsed["error"]["message"].presence || parsed["error"].to_json
+        msg << ": #{detail}"
+      elsif res.body.present?
+        msg << ": #{res.body.to_s.truncate(300)}"
+      end
+      raise msg
+    end
 
     def user_json(title, summary, source_name)
       {
