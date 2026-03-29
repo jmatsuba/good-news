@@ -66,6 +66,13 @@ test:
 # Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
 # for a full overview on how database connection configuration can be specified.
 #
+# Dokku: link separate postgres services (e.g. aqua / black / blue) so the
+# server sets DOKKU_POSTGRES_*_URL. Optional fallbacks match Rails multi-db names.
+<%
+  dokku_cache_url = ENV["DOKKU_POSTGRES_AQUA_URL"].presence || ENV["CACHE_DATABASE_URL"].presence
+  dokku_queue_url = ENV["DOKKU_POSTGRES_BLACK_URL"].presence || ENV["QUEUE_DATABASE_URL"].presence
+  dokku_cable_url = ENV["DOKKU_POSTGRES_BLUE_URL"].presence || ENV["CABLE_DATABASE_URL"].presence
+%>
 production:
   primary: &primary_production
     <<: *default
@@ -73,14 +80,29 @@ production:
     username: good_news
     password: <%= ENV["GOOD_NEWS_DATABASE_PASSWORD"] %>
   cache:
+    <<: *default
+    migrations_paths: db/cache_migrate
+<% if dokku_cache_url %>
+    url: <%= dokku_cache_url %>
+<% else %>
     <<: *primary_production
     database: good_news_production_cache
-    migrations_paths: db/cache_migrate
+<% end %>
   queue:
+    <<: *default
+    migrations_paths: db/queue_migrate
+<% if dokku_queue_url %>
+    url: <%= dokku_queue_url %>
+<% else %>
     <<: *primary_production
     database: good_news_production_queue
-    migrations_paths: db/queue_migrate
+<% end %>
   cable:
+    <<: *default
+    migrations_paths: db/cable_migrate
+<% if dokku_cable_url %>
+    url: <%= dokku_cable_url %>
+<% else %>
     <<: *primary_production
     database: good_news_production_cable
-    migrations_paths: db/cable_migrate
+<% end %>
