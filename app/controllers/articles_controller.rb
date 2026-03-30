@@ -39,7 +39,7 @@ class ArticlesController < ApplicationController
     raise ActiveRecord::RecordNotFound unless @article
 
     @page_title = "#{@article.title} · Good News"
-    @page_description = @article.summary.truncate(160)
+    @page_description = ApplicationController.helpers.article_card_summary(@article).truncate(160)
   end
 
   private

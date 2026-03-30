@@ -59,7 +59,7 @@ module Ingestion
         tallies[:fetched] += 1
         norm = Rss::Normalizer.normalize(
           entry,
-          fetch_og_fallback: ENV["ENRICH_OG_IMAGES"] == "true"
+          fetch_og_fallback: ENV["ENRICH_OG_IMAGES"] != "false"
         )
         next unless norm
 
@@ -76,7 +76,7 @@ module Ingestion
 
     def process_new_item(feed, norm, tallies)
       unless ENV["GEMINI_API_KEY"].present?
-        Article.create!(
+        article = Article.create!(
           title: norm.title,
           summary: norm.summary,
           url: norm.url,
@@ -86,6 +86,7 @@ module Ingestion
           status: :candidate,
           classification_json: { "error" => "GEMINI_API_KEY missing" }
         )
+        Ingestion::HeroImage.attach!(article:, source_url: norm.image_url)
         return
       end
 
@@ -94,7 +95,7 @@ module Ingestion
           classify_with_retries(norm, feed)
         rescue StandardError => e
           Rails.logger.warn("[ingest] classification failed for #{norm.url}: #{e.class}: #{e.message}")
-          Article.create!(
+          article = Article.create!(
             title: norm.title,
             summary: norm.summary,
             url: norm.url,
@@ -108,6 +109,7 @@ module Ingestion
               "errorClass" => e.class.name
             }
           )
+          Ingestion::HeroImage.attach!(article:, source_url: norm.image_url)
           tallies[:rejected] += 1
           return
         end
@@ -134,6 +136,7 @@ module Ingestion
         fit_score: c.fit_score,
         classification_json: c.as_json_for_db
       )
+      Ingestion::HeroImage.attach!(article:, source_url: norm.image_url)
 
       return unless published && c.recommended_slugs.any?
 

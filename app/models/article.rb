@@ -7,6 +7,8 @@ class Article < ApplicationRecord
     rejected: "REJECTED"
   }, default: :candidate
 
+  has_one_attached :image
+
   has_many :article_tags, dependent: :destroy
   has_many :tags, through: :article_tags
 

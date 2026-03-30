@@ -43,10 +43,13 @@ Rails 8 app that ingests RSS feeds, classifies articles with Google Gemini, and 
 
 ## Ingest
 
-- **Development:** `GET` or `POST` `/ingest` with `Authorization: Bearer <INGEST_SECRET>` or `?secret=` runs ingestion **synchronously** and returns JSON or HTML (`&ui=1`).
-- **Production:** the same endpoints **enqueue** [`IngestionJob`](app/jobs/ingestion_job.rb); you must run **`bin/jobs`** (or your platform’s worker) so jobs execute. HTML `ui=1` explains that the job was queued.
+Run ingestion manually or from a scheduler:
 
-Recurring ingest is configured in [`config/recurring.yml`](config/recurring.yml) for production (daily at midnight, server time).
+```bash
+bin/rails articles:ingest
+```
+
+This calls [`Ingestion::Runner`](app/services/ingestion/runner.rb) synchronously. Production also runs [`IngestionJob`](app/jobs/ingestion_job.rb) on a schedule via [`config/recurring.yml`](config/recurring.yml) (daily at midnight, server time); keep **`bin/jobs`** running so those jobs execute.
 
 ## Admin
 
@@ -63,7 +66,3 @@ Tests expect `DATABASE_URL_TEST` or the default URL in `config/database.yml` (e.
 ```bash
 RAILS_ENV=test bin/rails db:create db:migrate
 ```
-
-## Migrating from the old Prisma app
-
-This schema uses **UUID** primary keys. The previous Next.js app used Prisma **cuid** strings. To reuse an existing Postgres database you must either **copy/transform** rows (map old IDs to new UUIDs and rewrite foreign keys) or start from an empty database and re-ingest.

@@ -5,9 +5,6 @@ Rails.application.routes.draw do
 
   get "/article/:id", to: "articles#show", as: :article
 
-  get "ingest", to: "ingest#show"
-  post "ingest", to: "ingest#create"
-
   namespace :admin do
     get "rejected", to: "rejected#index"
   end

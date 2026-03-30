@@ -10,8 +10,7 @@ This app is meant to run as **long-lived processes**: **Puma** for HTTP and **`b
 | `RAILS_MASTER_KEY` | Decrypts `config/credentials.yml.enc` (or use env-based secrets only) |
 | `GEMINI_API_KEY` | Required for classification during ingest |
 | `GEMINI_MODEL` | Optional (default `gemini-2.5-flash`) |
-| `INGEST_SECRET` | Protects `/ingest` and `/admin/rejected` |
-| `CRON_SECRET` | Optional second token accepted for `/ingest` (e.g. external cron) |
+| `INGEST_SECRET` | Protects `/admin/rejected` |
 | `MIN_POSITIVITY`, `MAX_SENSATIONALISM`, `MAX_POLITICAL_CONTROVERSY`, `MIN_FIT_SCORE` | Classification thresholds |
 | `RSS_FEED_URLS` | Optional comma-separated extra feeds |
 | `ENRICH_OG_IMAGES` | Set to `true` to fetch `og:image` when RSS has no image |
@@ -34,7 +33,7 @@ on the server so primary, cache, queue, and cable schemas are created.
 1. **Web:** `bin/rails server` or Puma via your process manager.
 2. **Jobs:** `bin/jobs` — required in production for `IngestionJob` and for [`config/recurring.yml`](config/recurring.yml) (daily ingest).
 
-Without `bin/jobs`, enqueued ingests and recurring tasks will not run.
+Without `bin/jobs`, recurring `IngestionJob` tasks and other Solid Queue work will not run. You can still run `bin/rails articles:ingest` synchronously (e.g. from cron) without a job worker.
 
 ## Fly.io
 

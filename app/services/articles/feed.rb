@@ -11,14 +11,15 @@ module Articles
     end
 
     def self.hero(take: 5)
-      highlighted = Article.published.highlighted.order(published_at: :desc).limit(take).includes(tags: []).to_a
+      highlighted = Article.published.highlighted.order(published_at: :desc).limit(take)
+        .with_attached_image.includes(tags: []).to_a
       return highlighted if highlighted.size >= 3
 
       rest = Article.published
         .where.not(id: highlighted.map(&:id))
         .order(fit_score: :desc, published_at: :desc)
         .limit(take - highlighted.size)
-        .includes(tags: [])
+        .with_attached_image.includes(tags: [])
         .to_a
 
       (highlighted + rest).first(take)
@@ -29,7 +30,7 @@ module Articles
     end
 
     def self.find_published(id)
-      Article.published.includes(tags: []).find_by(id:)
+      Article.published.with_attached_image.includes(tags: []).find_by(id:)
     end
 
     def self.all_tags
@@ -49,7 +50,7 @@ module Articles
       return list_fts if @q
 
       effective_sort = @sort == "relevant" ? "newest" : @sort
-      scope = Article.published.includes(tags: [])
+      scope = Article.published.with_attached_image.includes(tags: [])
       scope = scope.where.not(id: @exclude_ids) if @exclude_ids.present?
       if @tag
         scope = scope.joins(:tags).where(tags: { slug: @tag.downcase }).distinct
@@ -108,7 +109,7 @@ module Articles
       id_list = ids.take(@limit)
       return Result.new(articles: [], has_more: false) if id_list.empty?
 
-      articles_by_id = Article.where(id: id_list).includes(tags: []).index_by { |a| a.id.to_s }
+      articles_by_id = Article.where(id: id_list).with_attached_image.includes(tags: []).index_by { |a| a.id.to_s }
       ordered = id_list.filter_map { |id| articles_by_id[id] }
       Result.new(articles: ordered, has_more:)
     end

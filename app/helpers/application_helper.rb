@@ -1,4 +1,16 @@
 module ApplicationHelper
+  def article_hero_image?(article)
+    article.image.attached? || article.image_url.to_s.strip.present?
+  end
+
+  def article_hero_image_source(article)
+    article.image.attached? ? article.image : article.image_url.to_s.strip.presence
+  end
+
+  def article_card_summary(article)
+    strip_tags(article.summary.to_s).squish
+  end
+
   def format_relative_time(time)
     time = time.is_a?(Time) ? time : Time.zone.parse(time.to_s)
     diff = Time.current - time
