@@ -6,6 +6,18 @@ local:
   service: Disk
   root: <%= Rails.root.join("storage") %>
 
+# DigitalOcean Spaces (S3-compatible). Keys: Account → API → Spaces keys.
+# https://docs.digitalocean.com/products/spaces/how-to/use-aws-sdks/
+# Env: SPACES_ACCESS_KEY_ID, SPACES_SECRET_ACCESS_KEY, SPACES_REGION, SPACES_BUCKET
+# Optional: SPACES_ENDPOINT (default https://<SPACES_REGION>.digitaloceanspaces.com)
+digitalocean:
+  service: S3
+  access_key_id: <%= ENV.fetch("SPACES_ACCESS_KEY") %>
+  secret_access_key: <%= ENV.fetch("SPACES_SECRET_KEY") %>
+  region: "tor1"
+  bucket: "goodnews"
+  endpoint: "https://tor1.digitaloceanspaces.com"
+
 # Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
 # amazon:
 #   service: S3
