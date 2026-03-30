@@ -12,8 +12,8 @@ local:
 # Optional: SPACES_ENDPOINT (default https://<SPACES_REGION>.digitaloceanspaces.com)
 digitalocean:
   service: S3
-  access_key_id: <%= ENV.fetch("SPACES_ACCESS_KEY") %>
-  secret_access_key: <%= ENV.fetch("SPACES_SECRET_KEY") %>
+  access_key_id: <%= ENV["SPACES_ACCESS_KEY"] %>
+  secret_access_key: <%= ENV["SPACES_SECRET_KEY"] %>
   region: "tor1"
   bucket: "goodnews"
   endpoint: "https://tor1.digitaloceanspaces.com"
