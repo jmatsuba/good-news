@@ -4,6 +4,10 @@ module Ingestion
   class Runner
     ALLOWED_SLUGS = %w[tech animals health politics environment science culture world].freeze
 
+    MAX_NEW_ARTICLES_PER_RUN = 8
+    CLASSIFY_MAX_ATTEMPTS = 3
+    CLASSIFY_RETRY_BASE_SECONDS = 1.0
+
     def self.call
       new.call
     end
@@ -13,7 +17,9 @@ module Ingestion
       tallies = { fetched: 0, new: 0, published: 0, rejected: 0 }
 
       begin
-        Ingestion::FeedList.feeds.each { |feed| process_feed(feed, tallies) }
+        catch(:ingestion_article_limit) do
+          Ingestion::FeedList.feeds.each { |feed| process_feed(feed, tallies) }
+        end
 
         run.update!(
           status: "success",
@@ -61,6 +67,8 @@ module Ingestion
 
         next if Article.exists?(url: norm.url)
 
+        throw(:ingestion_article_limit) if tallies[:new] >= MAX_NEW_ARTICLES_PER_RUN
+
         tallies[:new] += 1
         process_new_item(feed, norm, tallies)
       end
@@ -83,11 +91,7 @@ module Ingestion
 
       result =
         begin
-          Classification::Gemini.classify!(
-            title: norm.title,
-            summary: norm.summary,
-            source_name: feed["sourceName"]
-          )
+          classify_with_retries(norm, feed)
         rescue StandardError => e
           Rails.logger.warn("[ingest] classification failed for #{norm.url}: #{e.class}: #{e.message}")
           Article.create!(
@@ -138,6 +142,28 @@ module Ingestion
         tag = Tag.find_or_create_by!(slug:) { |t| t.label = slug.capitalize }
         article.tags << tag unless article.tags.include?(tag)
       end
+    end
+
+    def classify_with_retries(norm, feed)
+      last_error = nil
+      CLASSIFY_MAX_ATTEMPTS.times do |attempt|
+        return Classification::Gemini.classify!(
+          title: norm.title,
+          summary: norm.summary,
+          source_name: feed["sourceName"]
+        )
+      rescue StandardError => e
+        last_error = e
+        if attempt < CLASSIFY_MAX_ATTEMPTS - 1
+          wait = CLASSIFY_RETRY_BASE_SECONDS * (2**attempt)
+          Rails.logger.warn(
+            "[ingest] classification attempt #{attempt + 1}/#{CLASSIFY_MAX_ATTEMPTS} failed for #{norm.url}, " \
+            "retrying in #{wait}s: #{e.class}: #{e.message}"
+          )
+          sleep(wait)
+        end
+      end
+      raise last_error
     end
   end
 end
