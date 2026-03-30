@@ -10,13 +10,21 @@ Rails 8 app that ingests RSS feeds, classifies articles with Google Gemini, and 
 
 ## Setup
 
-1. Copy [`.env.example`](.env.example) to `.env` and set at least `DATABASE_URL` and `GEMINI_API_KEY` for full ingest.
-
-2. Start Postgres (optional local Docker):
+1. Install and start PostgreSQL (Homebrew):
 
    ```bash
-   docker compose up -d
+   brew install postgresql@16
+   brew services start postgresql@16
    ```
+
+   Create the app databases (defaults use your macOS username on `127.0.0.1:5432`):
+
+   ```bash
+   createdb goodnews
+   createdb goodnews_test
+   ```
+
+2. Copy [`.env.example`](.env.example) to `.env`. Set `GEMINI_API_KEY` for full ingest. Leave `DATABASE_URL` unset to use the defaults in `config/database.yml`, or set it if you use a non-default role or host.
 
 3. Install gems and prepare the database:
 
@@ -50,7 +58,7 @@ See [DEPLOY.md](DEPLOY.md) for Fly.io, Render, Railway, and Kamal-style setups (
 
 ## Test database
 
-Tests expect `DATABASE_URL_TEST` or the default URL in `config/database.yml` (e.g. `goodnews_test` on port 5433). Create the DB with:
+Tests expect `DATABASE_URL_TEST` or the default URL in `config/database.yml` (e.g. `goodnews_test` on port 5432). Create the DB with:
 
 ```bash
 RAILS_ENV=test bin/rails db:create db:migrate
