@@ -57,7 +57,7 @@ This calls [`Ingestion::Runner`](app/services/ingestion/runner.rb) synchronously
 
 ## Deployment
 
-See [DEPLOY.md](DEPLOY.md) for Fly.io, Render, Railway, and Kamal-style setups (Puma + `bin/jobs` + PostgreSQL).
+See [DEPLOY.md](DEPLOY.md) for Dokku, Fly.io, Render, and Railway setups (Puma + `bin/jobs` + PostgreSQL).
 
 ## Test database
 

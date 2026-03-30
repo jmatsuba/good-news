@@ -124,12 +124,6 @@ dokku checks:skip good-news worker
 
 Health checks can target [`GET /up`](#health-check) once the proxy is configured.
 
-## Kamal + VPS
-
-- Use the generated [`config/deploy.yml`](config/deploy.yml) as a starting point.
-- Run at least two roles or accessories: **web** (Puma) and **jobs** (`bin/jobs`).
-- Terminate TLS at your proxy (Caddy, nginx, or Kamal proxy) and enable `force_ssl` in production when appropriate.
-
 ## SSL
 
 Terminate HTTPS at your load balancer or reverse proxy; set `config.force_ssl = true` in production when everything behind the proxy is trusted.
