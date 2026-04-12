@@ -68,4 +68,4 @@ group :test do
   gem "selenium-webdriver"
 end
 
-gem "aws-sdk-s3", "~> 1.217", require: false
+gem "aws-sdk-s3", "~> 1.219", require: false
